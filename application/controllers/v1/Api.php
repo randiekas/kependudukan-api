@@ -162,4 +162,27 @@ class Api extends CI_Controller {
 		$response["data"]			= $file;	
 		$this->json($response);
 	}
+
+	public function tambah_master_kk_anggota(){
+		$table			= "master_kk_anggota";
+		$data			= [];
+		$post 			= json_decode($this->security->xss_clean($this->input->raw_input_stream));
+		// foreach($post as $key => $val){  
+		// 	$data[$key]	= $val;
+		// } 
+		// if(isset($_GET['id_perusahaan'])){
+			
+		// 	$jwt					= jwt::decode($this->input->get_request_header("Authorization"), $this->config->item("jwt_key", false));
+		// 	if($jwt->tipe=="perusahaan"){
+		// 		$data['id_perusahaan']	=	$jwt->id_perusahaan;
+		// 	}else{
+		// 		$data['id_perusahaan']	= $_GET['id_perusahaan'];
+		// 	}
+		// }
+		$data["dibuat"]	= date("Y-m-d H:i:s");
+		$execute				= $this->db->insert_batch($table, $post);
+		$response["status"]		= $execute;
+		$response["message"]	= "Data berhasil ditambahkan";	
+		$this->json($response);
+	}
 }
