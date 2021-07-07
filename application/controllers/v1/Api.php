@@ -291,4 +291,66 @@ class Api extends CI_Controller {
 		$response["data"]		= $execute->result();
 		$this->json($response);
 	}
+	public function dasborDesa(){
+		$jwt					= jwt::decode($this->input->get_request_header("Authorization"), $this->config->item("jwt_key", false));
+		$id_desa				= $jwt->id_desa;
+		$query					= "
+			-- laporan penduduk
+
+			select 
+
+				-- penduduk
+				sum(if(status='lahir',1,0)) as lahir,
+				sum(if(status='mati',1,0)) as mati,
+				sum(if(status='keluar',1,0)) as keluar,
+				sum(if(status='datang',1,0)) as datang,
+				sum(if(status_hubungan_dalam_keluarga='kepala keluarga',1,0)) as kk,
+				sum(1) as penduduk,
+
+				-- agama
+
+				sum(if(agama='islam',1,0)) as islam,
+				sum(if(agama='kristen',1,0)) as kristen,
+				sum(if(agama='khatolik',1,0)) as khatolik,
+				sum(if(agama='hindu',1,0)) as hindu,
+				sum(if(agama='budha',1,0)) as budha,
+				
+				-- status perkawinan
+				
+				sum(if(status_perkawinan='belum',1,0)) as belum_kawin,
+				sum(if(status_perkawinan='kawin tercatat',1,0)) as kawin_tercatat,
+				sum(if(status_perkawinan='belum tercatat',1,0)) as kawin_belum_tercatat,
+				sum(if(status_perkawinan='cerai mati',1,0)) as cerai_mati
+				
+			from 
+				master_kk_anggota
+			left join master_dusun
+				on master_dusun.id = master_kk_anggota.id_dusun
+			where 
+				master_dusun.id_desa	= ".$id_desa."
+		";
+		$execute					= $this->db->query($query);
+		$response["status"]			= true;
+		$response["message"]		= "";
+		$response["data"]			= $execute->last_row();
+		$response["data"]->dusun	= $this->db->query("select count(id) as dusun from master_dusun where id_desa='".$id_desa."'")->last_row()->dusun;
+		$response["data"]->desa		= $this->db->query("select nama from master_desa where id='".$id_desa."'")->last_row()->nama;
+		$response["data"]->ganda	= $this->db->query("
+			select 
+				master_desa.nama as desa,
+				master_kk_anggota.nama_lengkap,
+				master_kk_anggota.nik,
+				master_kk_anggota.status
+			from master_kk_anggota
+			left join master_dusun
+				on master_dusun.id = master_kk_anggota.id_dusun
+			left join master_desa
+				on master_desa.id = master_dusun.id_desa
+			where 
+				(select count(id) from master_kk_anggota b where b.nik=master_kk_anggota.nik and master_kk_anggota.status='datang')>1
+			and master_desa.id = ".$id_desa."
+			
+		")->result();
+		$this->json($response);
+	}
 }
