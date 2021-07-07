@@ -121,8 +121,8 @@ class Api extends CI_Controller {
 	}
 	public function detil($table, $id, $field="id"){
 		$jwt					= jwt::decode($this->input->get_request_header("Authorization"), $this->config->item("jwt_key", false));
-		if($jwt->tipe=="perusahaan" && $table!="pengumuman"){
-			$id	=	$jwt->id_perusahaan;
+		if($jwt->tipe=="desa" && $table=="master_desa"){
+			$id					= $jwt->id_desa;
 		}
 		$this->db->where($field, $id);
 		$execute				= $this->db->get($table);
