@@ -167,22 +167,128 @@ class Api extends CI_Controller {
 		$table			= "master_kk_anggota";
 		$data			= [];
 		$post 			= json_decode($this->security->xss_clean($this->input->raw_input_stream));
-		// foreach($post as $key => $val){  
-		// 	$data[$key]	= $val;
-		// } 
-		// if(isset($_GET['id_perusahaan'])){
-			
-		// 	$jwt					= jwt::decode($this->input->get_request_header("Authorization"), $this->config->item("jwt_key", false));
-		// 	if($jwt->tipe=="perusahaan"){
-		// 		$data['id_perusahaan']	=	$jwt->id_perusahaan;
-		// 	}else{
-		// 		$data['id_perusahaan']	= $_GET['id_perusahaan'];
-		// 	}
-		// }
 		$data["dibuat"]	= date("Y-m-d H:i:s");
 		$execute				= $this->db->insert_batch($table, $post);
 		$response["status"]		= $execute;
 		$response["message"]	= "Data berhasil ditambahkan";	
+		$this->json($response);
+	}
+
+	public function laporan_penduduk($id_desa){
+		$query					= "
+			-- laporan penduduk gabung
+			select 
+				-- penduduk
+				master_dusun.nama,
+				sum(if(jenis_kelamin='l',1,0)) as l,
+				sum(if(jenis_kelamin='p',1,0)) as p,
+				
+				sum(if(status='lahir' && jenis_kelamin='l',1,0)) as l_lahir,
+				sum(if(status='lahir' && jenis_kelamin='p',1,0)) as p_lahir,
+
+				sum(if(status='mati' && jenis_kelamin='l',1,0)) as l_mati,
+				sum(if(status='mati' && jenis_kelamin='p',1,0)) as p_mati,
+				
+				sum(if(status='keluar' && jenis_kelamin='l',1,0)) as l_keluar,
+				sum(if(status='keluar' && jenis_kelamin='p',1,0)) as p_keluar,
+				
+				sum(if(status='datang' && jenis_kelamin='l',1,0)) as l_datang,
+				sum(if(status='datang' && jenis_kelamin='p',1,0)) as p_datang,
+
+				sum(if(status_hubungan_dalam_keluarga='kepala keluarga' && jenis_kelamin='l',1,0)) as l_kk,
+				sum(if(status_hubungan_dalam_keluarga='kepala keluarga' && jenis_kelamin='p',1,0)) as p_kk,
+				
+				-- agama
+				sum(if(agama='islam' && jenis_kelamin='l',1,0)) as l_islam,
+				sum(if(agama='islam' && jenis_kelamin='p',1,0)) as p_islam,
+				
+				sum(if(agama='kristen' && jenis_kelamin='l',1,0)) as l_kristen,
+				sum(if(agama='kristen' && jenis_kelamin='p',1,0)) as p_kristen,
+				
+				sum(if(agama='khatolik' && jenis_kelamin='l',1,0)) as l_khatolik,
+				sum(if(agama='khatolik' && jenis_kelamin='p',1,0)) as p_khatolik,
+				
+				sum(if(agama='hindu' && jenis_kelamin='l',1,0)) as l_hindu,
+				sum(if(agama='hindu' && jenis_kelamin='p',1,0)) as p_hindu,
+				
+				sum(if(agama='budha' && jenis_kelamin='l',1,0)) as l_budha,
+				sum(if(agama='budha' && jenis_kelamin='p',1,0)) as p_budha,
+
+				sum(if(agama='lainnya' && jenis_kelamin='l',1,0)) as l_lainnya,
+				sum(if(agama='lainnya' && jenis_kelamin='p',1,0)) as p_lainnya,
+				
+				-- status perkawinan
+				
+				sum(if(status_perkawinan='belum' && jenis_kelamin='l',1,0)) as l_belum_kawin,
+				sum(if(status_perkawinan='belum' && jenis_kelamin='p',1,0)) as p_belum_kawin,
+				
+				sum(if(status_perkawinan='kawin tercatat' && jenis_kelamin='l',1,0)) as l_kawin_tercatat,
+				sum(if(status_perkawinan='kawin tercatat' && jenis_kelamin='p',1,0)) as p_kawin_tercatat,
+				
+				sum(if(status_perkawinan='belum tercatat' && jenis_kelamin='l',1,0)) as l_belum_tercatat,
+				sum(if(status_perkawinan='belum tercatat' && jenis_kelamin='p',1,0)) as p_belum_tercatat,
+				
+				sum(if(status_perkawinan='cerai mati' && jenis_kelamin='l',1,0)) as l_cerai_mati,
+				sum(if(status_perkawinan='cerai mati' && jenis_kelamin='p',1,0)) as p_cerai_mati,
+				
+				sum(if(status_perkawinan='cerai hidup' && jenis_kelamin='l',1,0)) as l_cerai_hidup,
+				sum(if(status_perkawinan='cerai hidup' && jenis_kelamin='p',1,0)) as p_cerai_hidup,
+				
+				-- pendidikan
+				sum(if(pendidikan='belum',1,0)) as belum_sekolah,
+				sum(if(pendidikan='sd',1,0)) as sd,
+				sum(if(pendidikan='smp',1,0)) as smp,
+				sum(if(pendidikan='sma',1,0)) as sma,
+				sum(if(pendidikan='d1' ,1,0)) as d1,
+				sum(if(pendidikan='d2',1,0)) as d2,
+				sum(if(pendidikan='d3',1,0)) as d3,
+				sum(if(pendidikan='d3',1,0)) as d4,
+				sum(if(pendidikan='s1',1,0)) as s1,
+				sum(if(pendidikan='s2',1,0)) as s2,
+				sum(if(pendidikan='s3',1,0)) as s3,
+				-- jenis pekerjaan
+				
+				sum(if(jenis_pekerjaan='belum' && jenis_kelamin='l',1,0)) as l_belum,
+				sum(if(jenis_pekerjaan='belum' && jenis_kelamin='p',1,0)) as p_belum,
+				
+				sum(if(jenis_pekerjaan='petani' && jenis_kelamin='l',1,0)) as l_petani,
+				sum(if(jenis_pekerjaan='petani' && jenis_kelamin='p',1,0)) as p_petani,
+				
+				sum(if(jenis_pekerjaan='nelayan' && jenis_kelamin='l',1,0)) as l_nelayan,
+				sum(if(jenis_pekerjaan='nelayan' && jenis_kelamin='p',1,0)) as p_nelayan,
+				
+				sum(if(jenis_pekerjaan='wiraswasta' && jenis_kelamin='l',1,0)) as l_wiraswasta,
+				sum(if(jenis_pekerjaan='wiraswasta' && jenis_kelamin='p',1,0)) as p_wiraswasta,
+				
+				sum(if(jenis_pekerjaan='pns' && jenis_kelamin='l',1,0)) as l_pns,
+				sum(if(jenis_pekerjaan='pns' && jenis_kelamin='p',1,0)) as p_pns,
+				
+				sum(if(jenis_pekerjaan='honorer' && jenis_kelamin='l',1,0)) as l_honorer,
+				sum(if(jenis_pekerjaan='honorer' && jenis_kelamin='p',1,0)) as p_honorer,
+				
+				sum(if(jenis_pekerjaan='karyawan' && jenis_kelamin='l',1,0)) as l_karyawan,
+				sum(if(jenis_pekerjaan='karyawan' && jenis_kelamin='p',1,0)) as p_karyawan,
+				
+				sum(if(jenis_pekerjaan='tni' && jenis_kelamin='l',1,0)) as l_tni,
+				sum(if(jenis_pekerjaan='tni' && jenis_kelamin='p',1,0)) as p_tni,
+				
+				sum(if(jenis_pekerjaan='polisi' && jenis_kelamin='l',1,0)) as l_polisi,
+				sum(if(jenis_pekerjaan='polisi' && jenis_kelamin='p',1,0)) as p_polisi,
+				
+				sum(if(jenis_pekerjaan='lainnya' && jenis_kelamin='l',1,0)) as l_pekerjaan_lainnya,
+				sum(if(jenis_pekerjaan='lainnya' && jenis_kelamin='p',1,0)) as p_pekerjaan_lainnya
+			from 
+				master_kk_anggota
+			left join master_dusun
+				on master_dusun.id = master_kk_anggota.id_dusun
+			where 
+				master_dusun.id_desa	= ".$id_desa."
+			group by master_dusun.nama
+		";
+		$execute				= $this->db->query($query);
+		$response["status"]		= true;
+		$response["message"]	= "";
+		$response["data"]		= $execute->result();
 		$this->json($response);
 	}
 }
