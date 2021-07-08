@@ -92,6 +92,7 @@ class Api extends CI_Controller {
 	}
 	public function query($table){
 		$where					= $this->input->get("where");
+		$id_dusun				= $this->input->get("id_dusun");
 		$jwt					= jwt::decode($this->input->get_request_header("Authorization"), $this->config->item("jwt_key", false));
 		if($where){
 			if($jwt->tipe=="desa"){
@@ -112,6 +113,9 @@ class Api extends CI_Controller {
 				}
 			}
 			$this->db->where($where, null, false);
+		}
+		if($id_dusun){
+			$this->db->where("id_dusun", $id_dusun);
 		}
 		$execute				= $this->db->get($table);
 		$response["status"]		= true;
