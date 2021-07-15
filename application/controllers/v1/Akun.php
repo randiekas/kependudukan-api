@@ -63,8 +63,8 @@ class Akun extends CI_Controller {
 			$this->db->where("id", $akun->id);
 			$this->db->update("akun", $data);
 		}else{
-			if($post->tipe=="desa"){
-				$data["tipe"]	= "desa";
+			if($post->tipe=="desa" || $post->tipe=="kecamatan"){
+				$data["tipe"]	= $post->tipe;
 				$this->db->insert("akun", $data);
 				$jwt["id_akun"]			= $this->db->insert_id();
 			}else{
@@ -90,6 +90,25 @@ class Akun extends CI_Controller {
 											left join master_kabupaten on master_kabupaten.id = master_kecamatan.id_kabupaten
 											where master_desa.id='".$desa->id."'")->last_row();
 					$jwt["id_desa"]		= $query->id_desa;
+					$jwt["id_kecamatan"]= $query->id_kecamatan;
+					$jwt["id_kabupaten"]= $query->id_kabupaten;
+					$jwt["id_provinsi"]	= $query->id_provinsi;
+				}else{
+					$response["status"]		= false;
+					$response["message"]	= "email ini tidak terdaftar";
+				}
+			}else if($post->tipe=="kecamatan"){
+				$this->db->where("email_pengelola", $google->email);
+				$desa	= $this->db->get("master_kecamatan");
+				if($desa->num_rows()>0){
+					$kecamatan			= $desa->last_row();
+					$query				= $this->db->query("select 
+												master_kecamatan.id as id_kecamatan,
+												master_kabupaten.id as id_kabupaten,
+												master_kabupaten.id_provinsi
+											from master_kecamatan
+											left join master_kabupaten on master_kabupaten.id = master_kecamatan.id_kabupaten
+											where master_kecamatan.id='".$kecamatan->id."'")->last_row();
 					$jwt["id_kecamatan"]= $query->id_kecamatan;
 					$jwt["id_kabupaten"]= $query->id_kabupaten;
 					$jwt["id_provinsi"]	= $query->id_provinsi;

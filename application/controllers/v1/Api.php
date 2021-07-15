@@ -223,8 +223,8 @@ class Api extends CI_Controller {
 				
 				-- status perkawinan
 				
-				sum(if(status_perkawinan='belum' && jenis_kelamin='l',1,0)) as l_belum_kawin,
-				sum(if(status_perkawinan='belum' && jenis_kelamin='p',1,0)) as p_belum_kawin,
+				sum(if(status_perkawinan='belum kawin' && jenis_kelamin='l',1,0)) as l_belum_kawin,
+				sum(if(status_perkawinan='belum kawin' && jenis_kelamin='p',1,0)) as p_belum_kawin,
 				
 				sum(if(status_perkawinan='kawin tercatat' && jenis_kelamin='l',1,0)) as l_kawin_tercatat,
 				sum(if(status_perkawinan='kawin tercatat' && jenis_kelamin='p',1,0)) as p_kawin_tercatat,
@@ -239,7 +239,7 @@ class Api extends CI_Controller {
 				sum(if(status_perkawinan='cerai hidup' && jenis_kelamin='p',1,0)) as p_cerai_hidup,
 				
 				-- pendidikan
-				sum(if(pendidikan='belum',1,0)) as belum_sekolah,
+				sum(if(pendidikan='belum/tidak sekolah',1,0)) as belum_sekolah,
 				sum(if(pendidikan='sd',1,0)) as sd,
 				sum(if(pendidikan='smp',1,0)) as smp,
 				sum(if(pendidikan='sma',1,0)) as sma,
@@ -247,7 +247,7 @@ class Api extends CI_Controller {
 				sum(if(pendidikan='d2',1,0)) as d2,
 				sum(if(pendidikan='d3',1,0)) as d3,
 				sum(if(pendidikan='d3',1,0)) as d4,
-				sum(if(pendidikan='s1',1,0)) as s1,
+				sum(if(pendidikan='d4/s1',1,0)) as s1,
 				sum(if(pendidikan='s2',1,0)) as s2,
 				sum(if(pendidikan='s3',1,0)) as s3,
 				-- jenis pekerjaan
@@ -270,11 +270,11 @@ class Api extends CI_Controller {
 				sum(if(jenis_pekerjaan='honorer' && jenis_kelamin='l',1,0)) as l_honorer,
 				sum(if(jenis_pekerjaan='honorer' && jenis_kelamin='p',1,0)) as p_honorer,
 				
-				sum(if(jenis_pekerjaan='karyawan' && jenis_kelamin='l',1,0)) as l_karyawan,
-				sum(if(jenis_pekerjaan='karyawan' && jenis_kelamin='p',1,0)) as p_karyawan,
+				sum(if(jenis_pekerjaan='karyawan swasta' && jenis_kelamin='l',1,0)) as l_karyawan,
+				sum(if(jenis_pekerjaan='karyawan swasta' && jenis_kelamin='p',1,0)) as p_karyawan,
 				
 				sum(if(jenis_pekerjaan='tni' && jenis_kelamin='l',1,0)) as l_tni,
-				sum(if(jenis_pekerjaan='tni' && jenis_kelamin='p',1,0)) as p_tni,
+				sum(if(jenis_pekerjaan='tni/abri' && jenis_kelamin='p',1,0)) as p_tni,
 				
 				sum(if(jenis_pekerjaan='polisi' && jenis_kelamin='l',1,0)) as l_polisi,
 				sum(if(jenis_pekerjaan='polisi' && jenis_kelamin='p',1,0)) as p_polisi,
@@ -321,9 +321,9 @@ class Api extends CI_Controller {
 				
 				-- status perkawinan
 				
-				sum(if(status_perkawinan='belum',1,0)) as belum_kawin,
+				sum(if(status_perkawinan='belum kawin',1,0)) as belum_kawin,
 				sum(if(status_perkawinan='kawin tercatat',1,0)) as kawin_tercatat,
-				sum(if(status_perkawinan='belum tercatat',1,0)) as kawin_belum_tercatat,
+				sum(if(status_perkawinan='belum belum tercatat',1,0)) as kawin_belum_tercatat,
 				sum(if(status_perkawinan='cerai mati',1,0)) as cerai_mati
 				
 			from 
@@ -355,6 +355,56 @@ class Api extends CI_Controller {
 			and master_desa.id = ".$id_desa."
 			
 		")->result();
+		$this->json($response);
+	}
+	public function dasborKecamatan(){
+		$jwt					= jwt::decode($this->input->get_request_header("Authorization"), $this->config->item("jwt_key", false));
+		$id_kecamatan			= $jwt->id_kecamatan;
+		$query					= "
+			-- laporan penduduk
+
+			select 
+
+				-- penduduk
+				sum(if(status='lahir',1,0)) as lahir,
+				sum(if(status='mati',1,0)) as mati,
+				sum(if(status='keluar',1,0)) as keluar,
+				sum(if(status='datang',1,0)) as datang,
+				sum(if(status_hubungan_dalam_keluarga='kepala keluarga',1,0)) as kk,
+				sum(1) as penduduk,
+
+				-- agama
+
+				sum(if(agama='islam',1,0)) as islam,
+				sum(if(agama='kristen',1,0)) as kristen,
+				sum(if(agama='khatolik',1,0)) as khatolik,
+				sum(if(agama='hindu',1,0)) as hindu,
+				sum(if(agama='budha',1,0)) as budha,
+				
+				-- status perkawinan
+				
+				sum(if(status_perkawinan='belum kawin',1,0)) as belum_kawin,
+				sum(if(status_perkawinan='kawin tercatat',1,0)) as kawin_tercatat,
+				sum(if(status_perkawinan='belum belum tercatat',1,0)) as kawin_belum_tercatat,
+				sum(if(status_perkawinan='cerai mati',1,0)) as cerai_mati
+				
+			from 
+				master_kk_anggota
+			left join master_dusun
+				on master_dusun.id = master_kk_anggota.id_dusun
+			left join master_desa
+				on master_desa.id = master_dusun.id_desa
+			left join master_kecamatan
+				on master_kecamatan.id = master_desa.id_kecamatan
+			where 
+				master_kecamatan.id	= ".$id_kecamatan."
+		";
+		$execute					= $this->db->query($query);
+		$response["status"]			= true;
+		$response["message"]		= "";
+		$response["data"]			= $execute->last_row();
+		$response["data"]->desa		= $this->db->query("select count(id) as desa from master_desa where id_kecamatan='".$id_kecamatan."'")->last_row()->desa;
+		$response["data"]->kecamatan= $this->db->query("select nama from master_kecamatan where id='".$id_kecamatan."'")->last_row()->nama;
 		$this->json($response);
 	}
 }
