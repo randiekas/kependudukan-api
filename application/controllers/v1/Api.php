@@ -111,6 +111,21 @@ class Api extends CI_Controller {
 				else if($table=="master_desa"){
 					$this->db->where("id", $jwt->id_desa);
 				}
+			}else if($jwt->tipe=="kecamatan"){
+				if($jwt->tipe=="desa"){
+					if($table=="master_provinsi"){
+						$this->db->where("id", $jwt->id_provinsi);
+					}
+					else if($table=="master_kabupaten"){
+						$this->db->where("id", $jwt->id_kabupaten);
+					}
+					else if($table=="master_kecamatan"){
+						$this->db->where("id", $jwt->id_kecamatan);
+					}
+					else if($table=="master_kecamatan"){
+						$this->db->where("id", $jwt->id_kecamatan);
+					}
+				}
 			}
 			$this->db->where($where, null, false);
 		}
