@@ -75,10 +75,13 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'assp4745_root',
-	'password' => 'u1ng@u1ng',
-	'database' => 'assp4745_kependudukan',
+	'hostname' => '127.0.0.1',
+	'username' => 'root',
+	'password' => 'abcd1234',
+	'database' => 'tiket',
+	// 'username' => 'assp4745_root',
+	// 'password' => 'u1ng@u1ng',
+	// 'database' => 'assp4745_kependudukan',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,

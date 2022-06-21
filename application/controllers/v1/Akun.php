@@ -27,6 +27,34 @@ class Akun extends CI_Controller {
 		$response["message"]	= "1.0.1";
 		$this->json($response);
 	}
+	public function masuk(){
+
+		$post 							= json_decode($this->security->xss_clean($this->input->raw_input_stream));
+		// set reponse
+		$response["status"]				= true;
+		$response["message"]			= "";
+		$response["data"]				= [];
+
+		$this->db->where('email', $post->email);
+		$this->db->where('password', md5($post->password));
+		$akun							= $this->db->get("akun");
+
+		if($akun->num_rows() == 0 ){
+			$response["status"]			= false;
+			$response["message"]		= "Akun tidak ditemukan";
+		}else{
+			$akun						= $akun->last_row();
+			$data["terakhir_masuk"]		= date("Y-m-d H:i:s");
+			$this->db
+				->where("id", $akun->id)
+				->update("akun", $data);
+			$jwt["id_akun"]				= $akun->id;
+			$jwt["tipe"]				= $akun->tipe;
+			$response["data"]["akun"]	= $akun;
+			$response["data"]["token"]	= jwt::encode($jwt, $this->config->item("jwt_key"));
+		}
+		$this->json($response);
+	}
 	public function masukGoogle(){
 		// setdata
 		$data			= [];

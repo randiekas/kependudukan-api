@@ -74,7 +74,54 @@ class Api extends CI_Controller {
 		$response["message"]	= "Data berhasil dihapus";	
 		$this->json($response);
 	}
-	public function data($table, $field=null, $value=null){
+	public function data($table){
+
+		// $jwt							= jwt::decode($this->input->get_request_header("Authorization"), $this->config->item("jwt_key", false));
+		$page							= (int)$this->input->get('page');
+		$size							= (int)$this->input->get('size');
+		$query							= explode(",", $this->input->get('query'));
+		$condition						= [];
+		$condition_like					= [];
+		
+		if($query[0]!=''){
+			foreach($query as $item){
+				$item						= explode(":", $item);
+				$filter						= "";
+				if(strpos($item[1], "like.") !== false){
+					$filter						= " like";
+					$item[1]					= str_replace('like.', '', $item[1]);
+					$condition_like[$item[0]]	= $item[1];
+				}else{
+					$condition[$item[0]]		= $item[1];
+				}
+			}
+		}
+		
+		$execute						= $this->db
+											->where($condition)
+											->like($condition_like)
+											->limit($size, $page)
+											->get($table);
+
+		$count							= $this->db
+											->select("id")
+											->where($condition)
+											->like($condition_like)
+											->get($table)
+											->num_rows();
+		// $execute->result();	
+		$response["status"]				= true;
+		$response["message"]			= "";	
+		$response["data"]				= [];
+
+		$response["data"]["content"]	= $execute->result();
+		$response["data"]["count"]		= $count;
+		$response["data"]["page"]		= $page;
+		$response["data"]["size"]		= $size;
+		$this->json($response);
+		// $this->json(explode(",", $query));
+	}
+	public function dataall($table, $field=null, $value=null){
 		if($field!=null){
 			if($field=='id_perusahaan'){
 				$jwt					= jwt::decode($this->input->get_request_header("Authorization"), $this->config->item("jwt_key", false));
