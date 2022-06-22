@@ -28,21 +28,19 @@ class Api extends CI_Controller {
 		$this->json($response);
 	}
 	public function tambah($table){
-		$data			= [];
-		$post 			= json_decode($this->security->xss_clean($this->input->raw_input_stream));
+
+		$data					= [];
+		$post 					= json_decode($this->security->xss_clean($this->input->raw_input_stream));
+		
 		foreach($post as $key => $val){  
-			$data[$key]	= $val;
+			$data[$key]			= $val;
 		} 
-		if(isset($_GET['id_perusahaan'])){
-			
-			$jwt					= jwt::decode($this->input->get_request_header("Authorization"), $this->config->item("jwt_key", false));
-			if($jwt->tipe=="perusahaan"){
-				$data['id_perusahaan']	=	$jwt->id_perusahaan;
-			}else{
-				$data['id_perusahaan']	= $_GET['id_perusahaan'];
-			}
+
+		if($table == 'akun'){
+			$data["password"]	= md5($data["password"]);
 		}
-		$data["dibuat"]	= date("Y-m-d H:i:s");
+
+		$data["dibuat"]			= date("Y-m-d H:i:s");
 		$execute				= $this->db->insert($table, $data);
 		$response["status"]		= $execute;
 		$response["message"]	= "Data berhasil ditambahkan";	
@@ -216,8 +214,8 @@ class Api extends CI_Controller {
 			$file = $this->upload->display_errors();
 		}
 		
-		$response["message"]		= "";	
-		$response["data"]			= $file;	
+		$response["message"]			= "";	
+		$response["data"]["file_path"]	= $file;	
 		$this->json($response);
 	}
 
